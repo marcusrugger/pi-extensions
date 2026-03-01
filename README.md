@@ -18,19 +18,25 @@ Copy text to the system clipboard directly from your agent.
 
 Each extension is self-contained in its own directory with its own dependencies.
 
-1. Clone this repository:
+1. Copy the extension directory to your pi extensions folder:
+
+   **Global (available in all projects):**
    ```bash
-   git clone https://github.com/<your-username>/pi-extensions.git
-   cd pi-extensions
+   cp -r pi-clipboard ~/.pi/agent/extensions/
    ```
 
-2. Install dependencies for the extensions you want:
+   **Project-local (only for this project):**
    ```bash
-   cd pi-clipboard
+   cp -r pi-clipboard .pi/extensions/
+   ```
+
+2. Install the extension's dependencies:
+   ```bash
+   cd ~/.pi/agent/extensions/pi-clipboard  # or .pi/extensions/pi-clipboard
    npm install
    ```
 
-3. Configure pi to use the extensions by adding the path to your pi configuration, or symlink/copy the extension directories to pi's extensions folder.
+3. Restart pi or run `/reload` to load the extension.
 
 ## Usage with Pi
 
