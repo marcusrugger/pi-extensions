@@ -1,0 +1,11 @@
+{
+  "name": "pi-clipboard",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "clipboardy": "^4.0.0"
+  },
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
