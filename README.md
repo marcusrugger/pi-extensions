@@ -1,6 +1,6 @@
 # Pi Extensions
 
-A collection of custom extensions for [pi](https://github.com/mariozechner/pi-coding-agent), the coding agent harness. These extensions add new tools and capabilities to your pi agents.
+A collection of custom extensions for [pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent), the coding agent harness. These extensions add new tools and capabilities to your pi agents.
 
 ## Available Extensions
 
@@ -74,7 +74,7 @@ The `package.json` needs:
 }
 ```
 
-See the [pi documentation](https://github.com/mariozechner/pi-coding-agent#extensions) for details on creating extensions.
+See the [pi documentation](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent#extensions) for details on creating extensions.
 
 ## License
 
