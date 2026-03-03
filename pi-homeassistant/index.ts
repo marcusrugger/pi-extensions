@@ -142,7 +142,8 @@ function saveConfigFile(config: HAConfig): void {
 async function haApi<T>(
 	method: "GET" | "POST",
 	endpoint: string,
-	body?: unknown
+	body?: unknown,
+	signal?: AbortSignal
 ): Promise<{ data: T | null; error: string | null; status?: number }> {
 	if (!haConnection) {
 		return { data: null, error: "Home Assistant not configured. Set HA_URL and HA_TOKEN in environment or ~/.env" };
@@ -158,6 +159,7 @@ async function haApi<T>(
 			},
 			body: body ? JSON.stringify(body) : undefined,
 			dispatcher: haAgent,
+			signal,
 		});
 
 		if (!response.ok) {
@@ -171,6 +173,10 @@ async function haApi<T>(
 		const data = await response.json();
 		return { data: data as T, error: null };
 	} catch (error) {
+		// Handle abort gracefully
+		if (error instanceof Error && error.name === "AbortError") {
+			return { data: null, error: "Request was cancelled" };
+		}
 		const message = error instanceof Error ? error.message : String(error);
 		if (message.includes("fetch failed") || message.includes("ECONNREFUSED")) {
 			return { data: null, error: `Cannot reach Home Assistant at ${haConnection.url}` };
@@ -348,7 +354,7 @@ async function handleVoice(_args: string, ctx: ExtensionCommandContext): Promise
 async function handleAnnounce(
 	_toolCallId: string,
 	params: { message: string; target?: string },
-	_signal: AbortSignal | undefined,
+	signal: AbortSignal | undefined,
 	_onUpdate: ((update: { content: { type: string; text: string }[] }) => void) | undefined,
 	ctx: ExtensionCommandContext
 ): Promise<{ content: { type: string; text: string }[]; details?: unknown; isError?: boolean }> {
@@ -377,7 +383,7 @@ async function handleAnnounce(
 			entity_id: targetDevice,
 			message,
 			preannounce: true,
-		});
+		}, signal);
 
 		if (result.error) {
 			return {
@@ -397,7 +403,7 @@ async function handleAnnounce(
 			entity_id: "tts.cloud",
 			media_player_entity_id: targetDevice,
 			message,
-		});
+		}, signal);
 
 		if (result.error) {
 			return {
