@@ -10,10 +10,15 @@ import type { ExtensionAPI, ExtensionCommandContext } from "@mariozechner/pi-cod
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
+import { Agent } from "undici";
 
-// Disable SSL verification for self-signed certificates on local networks
-// This is safe for local networks where you control the certificates
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+// Agent for Home Assistant with TLS verification disabled
+// This only affects requests that use this specific agent
+const haAgent = new Agent({
+  connect: {
+    rejectUnauthorized: false,
+  },
+});
 
 // Configuration types
 interface HAConfig {
@@ -152,6 +157,7 @@ async function haApi<T>(
 				"Content-Type": "application/json",
 			},
 			body: body ? JSON.stringify(body) : undefined,
+			dispatcher: haAgent,
 		});
 
 		if (!response.ok) {
@@ -426,6 +432,11 @@ async function handleAnnounce(
 export default function (pi: ExtensionAPI) {
 	// Load configuration on startup
 	loadConfiguration();
+
+	// Clean up the Agent on shutdown/reload
+	pi.on("session_shutdown", () => {
+		haAgent.destroy();
+	});
 
 	// Register /ha command
 	pi.registerCommand("ha", {
