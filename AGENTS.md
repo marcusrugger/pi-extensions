@@ -10,6 +10,12 @@ pi-extensions/
 ├── .gitignore          # Git ignore rules (node_modules, .pi/, etc.)
 ├── .pi/                # Pi local state (git-ignored)
 ├── pi-clipboard/       # Clipboard extension
+│   ├── README.md       # Readme for extension
+│   ├── index.ts        # Extension source code
+│   ├── package.json    # Extension manifest and dependencies
+│   └── package-lock.json
+├── pi-homeassistant/   # Home Assistant extension
+│   ├── README.md       # Readme for extension
 │   ├── index.ts        # Extension source code
 │   ├── package.json    # Extension manifest and dependencies
 │   └── package-lock.json
@@ -36,19 +42,9 @@ Each extension is a standalone npm package in its own directory with:
 
 ## Current Extensions
 
-### pi-clipboard
-
-Provides a `copy_to_clipboard` tool that allows agents to copy text to the system clipboard. Useful when users want to paste content elsewhere (git commit editors, other applications, documents).
-
-**Dependencies:** `clipboardy`
-
-## Adding a New Extension
-
-1. Create a new directory: `mkdir <extension-name>`
-2. Create `package.json` with required fields (see pi-clipboard as template)
-3. Create `index.ts` with extension implementation
-4. Run `npm install` in the extension directory
-5. The extension will be auto-discovered by pi when the directory is in pi's extension path
+See each extensions README.md for more information about the extension.
+- pi-clipboard - provides agent with a clipboard tool
+- pi-homeassistant - provides user and agent with tools for Home Assistant
 
 ## Development Notes
 
