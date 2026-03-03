@@ -1,0 +1,11 @@
+{
+  "name": "pi-homeassistant",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "undici": "^6.21.0"
+  },
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
