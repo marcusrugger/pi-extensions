@@ -1,0 +1,9 @@
+{
+  "name": "pi-homeassistant",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {},
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
