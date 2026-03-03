@@ -1,6 +1,6 @@
 # Pi Extensions
 
-My personal collection of custom extensions for [pi](https://github.com/mariozechner/pi-coding-agent), the coding agent harness. Made open source for anyone to use.
+My personal collection of custom extensions for [pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent), the coding agent harness. Made open source for anyone to use.
 
 ## Extensions
 
