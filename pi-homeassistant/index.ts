@@ -181,13 +181,13 @@ async function haApi<T>(
 
 /**
  * Test connection to Home Assistant
+ * Calls /api/config which returns version info and other configuration details
  */
 async function testConnection(): Promise<{ success: boolean; version?: string; error?: string }> {
-	const result = await haApi<{ message?: string; version?: string }>("GET", "/");
+	const result = await haApi<{ version?: string }>("GET", "/config");
 	if (result.error) {
 		return { success: false, error: result.error };
 	}
-	// HA returns { "message": "API running." } on success
 	return { success: true, version: result.data?.version };
 }
 
