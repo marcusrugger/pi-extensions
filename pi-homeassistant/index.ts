@@ -371,14 +371,6 @@ async function handleAnnounce(
 		};
 	}
 
-	// Get friendly name if available
-	let targetName = targetDevice;
-	const { devices } = await fetchAnnouncementDevices();
-	const device = devices.find((d) => d.entity_id === targetDevice);
-	if (device?.attributes.friendly_name) {
-		targetName = device.attributes.friendly_name;
-	}
-
 	// Call appropriate HA API based on entity type
 	if (targetDevice.startsWith("assist_satellite.")) {
 		const result = await haApi<unknown>("POST", "/services/assist_satellite/announce", {
@@ -395,8 +387,8 @@ async function handleAnnounce(
 		}
 
 		return {
-			content: [{ type: "text", text: `Announced on ${targetName}: "${message}"` }],
-			details: { message, target: targetDevice, targetName },
+			content: [{ type: "text", text: `Announced on ${targetDevice}: "${message}"` }],
+			details: { message, target: targetDevice },
 		};
 	} else if (targetDevice.startsWith("media_player.")) {
 		// For media players, use tts.cloud (Nabu Casa) or tts.piper (local)
@@ -415,8 +407,8 @@ async function handleAnnounce(
 		}
 
 		return {
-			content: [{ type: "text", text: `Announced on ${targetName}: "${message}"` }],
-			details: { message, target: targetDevice, targetName },
+			content: [{ type: "text", text: `Announced on ${targetDevice}: "${message}"` }],
+			details: { message, target: targetDevice },
 		};
 	} else {
 		return {
