@@ -42,7 +42,7 @@ just init
 ### Individual extensions
 
 If you are going the a la carte route and only want to initialize an individual
-extension, then run just with <init-extension> where 'extension' is the name of the extension minus 'pi-'. For example:
+extension, then run `just` with `init-extension` where 'extension' is the name of the extension minus 'pi-'. For example:
 
 ``` bash
 just init-homeassistant
