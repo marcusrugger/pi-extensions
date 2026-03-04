@@ -13,6 +13,8 @@ You must have the [Pi coding agent](https://github.com/badlogic/pi-mono/tree/mai
 
 A recent version of [Node.js](https://nodejs.org/) (≥18.17) is required, which you should already have to run pi.
 
+[Just](https://github.com/casey/just) is optional and only needed if you want to use the provided justfile for initialization. It is not required to use the extensions.
+
 ## Installation
 
 ### Cloning
