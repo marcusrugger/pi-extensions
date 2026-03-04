@@ -72,7 +72,7 @@ This opens an interactive selector showing all your assist_satellite and media_p
 /ha say "Hello world!"
 /ha say Build complete
 ```
-Announces the message on your default device (set via `/ha voice`). Quotes are optional for single-word messages.
+Announces the message on your default device (set via `/ha voice`). Quotes are optional; everything after the first space is treated as the message.
 
 ### Make an announcement (via agent tool)
 ```
