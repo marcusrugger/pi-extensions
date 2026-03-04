@@ -349,6 +349,34 @@ async function handleVoice(_args: string, ctx: ExtensionCommandContext): Promise
 }
 
 /**
+ * Core announcement logic - shared by handleSay and handleAnnounce
+ * Routes to appropriate HA service based on entity type
+ */
+async function announceToTarget(
+	message: string,
+	targetDevice: string,
+	signal?: AbortSignal
+): Promise<{ success: boolean; error?: string }> {
+	if (targetDevice.startsWith("assist_satellite.")) {
+		const result = await haApi<unknown>("POST", "/services/assist_satellite/announce", {
+			entity_id: targetDevice,
+			message,
+			preannounce: true,
+		}, signal);
+		return { success: !result.error, error: result.error || undefined };
+	} else if (targetDevice.startsWith("media_player.")) {
+		const result = await haApi<unknown>("POST", "/services/tts/speak", {
+			entity_id: "tts.cloud",
+			media_player_entity_id: targetDevice,
+			message,
+		}, signal);
+		return { success: !result.error, error: result.error || undefined };
+	} else {
+		return { success: false, error: `Unknown entity type: ${targetDevice}. Expected assist_satellite.* or media_player.*` };
+	}
+}
+
+/**
  * Handle /ha say command - announce a message on the default device
  */
 async function handleSay(args: string, ctx: ExtensionCommandContext): Promise<void> {
@@ -384,23 +412,7 @@ async function handleSay(args: string, ctx: ExtensionCommandContext): Promise<vo
 	// Make the announcement
 	ctx.ui.notify(`Announcing on ${targetDevice}...`, "info");
 
-	let result;
-	if (targetDevice.startsWith("assist_satellite.")) {
-		result = await haApi<unknown>("POST", "/services/assist_satellite/announce", {
-			entity_id: targetDevice,
-			message: cleanMessage,
-			preannounce: true,
-		});
-	} else if (targetDevice.startsWith("media_player.")) {
-		result = await haApi<unknown>("POST", "/services/tts/speak", {
-			entity_id: "tts.cloud",
-			media_player_entity_id: targetDevice,
-			message: cleanMessage,
-		});
-	} else {
-		ctx.ui.notify(`Unknown entity type: ${targetDevice}`, "error");
-		return;
-	}
+	const result = await announceToTarget(cleanMessage, targetDevice);
 
 	if (result.error) {
 		ctx.ui.notify(`Failed: ${result.error}`, "error");
@@ -438,51 +450,20 @@ async function handleAnnounce(
 		};
 	}
 
-	// Call appropriate HA API based on entity type
-	if (targetDevice.startsWith("assist_satellite.")) {
-		const result = await haApi<unknown>("POST", "/services/assist_satellite/announce", {
-			entity_id: targetDevice,
-			message,
-			preannounce: true,
-		}, signal);
+	// Make the announcement
+	const result = await announceToTarget(message, targetDevice, signal);
 
-		if (result.error) {
-			return {
-				content: [{ type: "text", text: `Failed to announce: ${result.error}` }],
-				isError: true,
-			};
-		}
-
+	if (result.error) {
 		return {
-			content: [{ type: "text", text: `Announced on ${targetDevice}: "${message}"` }],
-			details: { message, target: targetDevice },
-		};
-	} else if (targetDevice.startsWith("media_player.")) {
-		// For media players, use tts.cloud (Nabu Casa) or tts.piper (local)
-		// We default to tts.cloud for Nabu Casa users
-		const result = await haApi<unknown>("POST", "/services/tts/speak", {
-			entity_id: "tts.cloud",
-			media_player_entity_id: targetDevice,
-			message,
-		}, signal);
-
-		if (result.error) {
-			return {
-				content: [{ type: "text", text: `Failed to announce: ${result.error}` }],
-				isError: true,
-			};
-		}
-
-		return {
-			content: [{ type: "text", text: `Announced on ${targetDevice}: "${message}"` }],
-			details: { message, target: targetDevice },
-		};
-	} else {
-		return {
-			content: [{ type: "text", text: `Unknown entity type: ${targetDevice}. Expected assist_satellite.* or media_player.*` }],
+			content: [{ type: "text", text: `Failed to announce: ${result.error}` }],
 			isError: true,
 		};
 	}
+
+	return {
+		content: [{ type: "text", text: `Announced on ${targetDevice}: "${message}"` }],
+		details: { message, target: targetDevice },
+	};
 }
 
 /**
