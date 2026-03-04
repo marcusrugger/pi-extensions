@@ -9,6 +9,7 @@ Adds Home Assistant control capabilities to pi agents:
 - **`ha_announce` tool** - Make voice announcements through HA voice satellites (like Assist devices) or media players
 - **`/ha connect`** - Test connection to your Home Assistant instance
 - **`/ha voice`** - Interactively select a default announcement device from your HA entities
+- **`/ha say <message>`** - Announce a message on the default device (set via `/ha voice`)
 
 Useful for hands-free notifications, reminders, or integrating your coding workflow with your smart home.
 
@@ -66,7 +67,14 @@ Then run `/ha connect` to verify the connection.
 ```
 This opens an interactive selector showing all your assist_satellite and media_player entities. Choose one to set as the default target.
 
-### Make an announcement
+### Announce a message from the command line
+```
+/ha say "Hello world!"
+/ha say Build complete
+```
+Announces the message on your default device (set via `/ha voice`). Quotes are optional; everything after the first space is treated as the message.
+
+### Make an announcement (via agent tool)
 ```
 You: Announce "Build complete" on my kitchen satellite
 Agent: [uses ha_announce] Announced on assist_satellite.kitchen_voice: "Build complete"

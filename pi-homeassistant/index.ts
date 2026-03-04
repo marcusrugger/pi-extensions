@@ -349,6 +349,79 @@ async function handleVoice(_args: string, ctx: ExtensionCommandContext): Promise
 }
 
 /**
+ * Core announcement logic - shared by handleSay and handleAnnounce
+ * Routes to appropriate HA service based on entity type
+ */
+async function announceToTarget(
+	message: string,
+	targetDevice: string,
+	signal?: AbortSignal
+): Promise<{ success: boolean; error?: string }> {
+	if (targetDevice.startsWith("assist_satellite.")) {
+		const result = await haApi<unknown>("POST", "/services/assist_satellite/announce", {
+			entity_id: targetDevice,
+			message,
+			preannounce: true,
+		}, signal);
+		return { success: !result.error, error: result.error || undefined };
+	} else if (targetDevice.startsWith("media_player.")) {
+		const result = await haApi<unknown>("POST", "/services/tts/speak", {
+			entity_id: "tts.cloud",
+			media_player_entity_id: targetDevice,
+			message,
+		}, signal);
+		return { success: !result.error, error: result.error || undefined };
+	} else {
+		return { success: false, error: `Unknown entity type: ${targetDevice}. Expected assist_satellite.* or media_player.*` };
+	}
+}
+
+/**
+ * Handle /ha say command - announce a message on the default device
+ */
+async function handleSay(args: string, ctx: ExtensionCommandContext): Promise<void> {
+	if (!haConnection) {
+		ctx.ui.notify("Set HA_URL and HA_TOKEN in environment or ~/.env", "error");
+		return;
+	}
+
+	// Extract message from args (after "say ")
+	const message = args.trim();
+
+	if (!message) {
+		ctx.ui.notify("Usage: /ha say <message>", "error");
+		return;
+	}
+
+	// Strip surrounding quotes if present
+	const cleanMessage = message.replace(/^["']|["']$/g, "");
+
+	if (!cleanMessage) {
+		ctx.ui.notify("Message cannot be empty", "error");
+		return;
+	}
+
+	// Check for default target
+	if (!haConfig.defaultAnnounceTarget) {
+		ctx.ui.notify("No default device set. Run /ha voice to select one.", "error");
+		return;
+	}
+
+	const targetDevice = haConfig.defaultAnnounceTarget;
+
+	// Make the announcement
+	ctx.ui.notify(`Announcing on ${targetDevice}...`, "info");
+
+	const result = await announceToTarget(cleanMessage, targetDevice);
+
+	if (result.error) {
+		ctx.ui.notify(`Failed: ${result.error}`, "error");
+	} else {
+		ctx.ui.notify(`Announced: "${cleanMessage}"`, "success");
+	}
+}
+
+/**
  * Handle ha_announce tool execution
  */
 async function handleAnnounce(
@@ -377,51 +450,20 @@ async function handleAnnounce(
 		};
 	}
 
-	// Call appropriate HA API based on entity type
-	if (targetDevice.startsWith("assist_satellite.")) {
-		const result = await haApi<unknown>("POST", "/services/assist_satellite/announce", {
-			entity_id: targetDevice,
-			message,
-			preannounce: true,
-		}, signal);
+	// Make the announcement
+	const result = await announceToTarget(message, targetDevice, signal);
 
-		if (result.error) {
-			return {
-				content: [{ type: "text", text: `Failed to announce: ${result.error}` }],
-				isError: true,
-			};
-		}
-
+	if (result.error) {
 		return {
-			content: [{ type: "text", text: `Announced on ${targetDevice}: "${message}"` }],
-			details: { message, target: targetDevice },
-		};
-	} else if (targetDevice.startsWith("media_player.")) {
-		// For media players, use tts.cloud (Nabu Casa) or tts.piper (local)
-		// We default to tts.cloud for Nabu Casa users
-		const result = await haApi<unknown>("POST", "/services/tts/speak", {
-			entity_id: "tts.cloud",
-			media_player_entity_id: targetDevice,
-			message,
-		}, signal);
-
-		if (result.error) {
-			return {
-				content: [{ type: "text", text: `Failed to announce: ${result.error}` }],
-				isError: true,
-			};
-		}
-
-		return {
-			content: [{ type: "text", text: `Announced on ${targetDevice}: "${message}"` }],
-			details: { message, target: targetDevice },
-		};
-	} else {
-		return {
-			content: [{ type: "text", text: `Unknown entity type: ${targetDevice}. Expected assist_satellite.* or media_player.*` }],
+			content: [{ type: "text", text: `Failed to announce: ${result.error}` }],
 			isError: true,
 		};
 	}
+
+	return {
+		content: [{ type: "text", text: `Announced on ${targetDevice}: "${message}"` }],
+		details: { message, target: targetDevice },
+	};
 }
 
 /**
@@ -438,16 +480,22 @@ export default function (pi: ExtensionAPI) {
 
 	// Register /ha command
 	pi.registerCommand("ha", {
-		description: "Home Assistant commands: 'connect' to test connection, 'voice' to select announcement device",
+		description: "Home Assistant commands: 'connect' to test connection, 'voice' to select device, 'say <message>' to announce",
 		handler: async (args: string, ctx: ExtensionCommandContext) => {
-			const subcommand = args.trim().toLowerCase();
+			// Parse: subcommand followed by optional args
+			const trimmed = args.trim();
+			const spaceIndex = trimmed.indexOf(" ");
+			const subcommand = spaceIndex >= 0 ? trimmed.slice(0, spaceIndex).toLowerCase() : trimmed.toLowerCase();
+			const subArgs = spaceIndex >= 0 ? trimmed.slice(spaceIndex + 1) : "";
 
 			if (subcommand === "connect" || subcommand === "") {
-				await handleConnect(args, ctx);
+				await handleConnect(subArgs, ctx);
 			} else if (subcommand === "voice") {
-				await handleVoice(args, ctx);
+				await handleVoice(subArgs, ctx);
+			} else if (subcommand === "say") {
+				await handleSay(subArgs, ctx);
 			} else {
-				ctx.ui.notify(`Unknown /ha subcommand: ${args}. Use 'connect' or 'voice'.`, "error");
+				ctx.ui.notify(`Unknown /ha subcommand: ${subcommand}. Use 'connect', 'voice', or 'say'.`, "error");
 			}
 		},
 	});
