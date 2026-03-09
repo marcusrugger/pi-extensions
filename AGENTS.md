@@ -18,7 +18,6 @@ pi-extensions/
 │   ├── README.md       # Readme for extension
 │   ├── index.ts        # Extension source code
 │   ├── package.json    # Extension manifest and dependencies
-│   └── package-lock.json
 └── <future-extension>/ # Additional extensions follow the same pattern
     ├── index.ts
     └── package.json
@@ -45,6 +44,7 @@ Each extension is a standalone npm package in its own directory with:
 See each extensions README.md for more information about the extension.
 - pi-clipboard - provides agent with a clipboard tool
 - pi-homeassistant - provides user and agent with tools for Home Assistant
+- pi-pushover - provides user and agent with tools to push PushOver notifications
 
 ## Development Notes
 

@@ -15,7 +15,7 @@ Useful for hands-free notifications, reminders, or integrating your coding workf
 
 ## Prerequisites
 
-1. A running Home Assistant instance
+1. A running Home Assistant instance with valid TLS certificate (self-signed certificates require the CA in your system trust store)
 2. A long-lived access token from Home Assistant (generate in Profile → Long-Lived Access Tokens)
 3. An announcement-capable device (assist_satellite or media_player entity)
 
@@ -33,13 +33,7 @@ Useful for hands-free notifications, reminders, or integrating your coding workf
    cp -r pi-homeassistant .pi/extensions/
    ```
 
-2. Install dependencies:
-   ```bash
-   cd ~/.pi/agent/extensions/pi-homeassistant  # or .pi/extensions/pi-homeassistant
-   npm install
-   ```
-
-3. Restart pi or run `/reload` to load the extension.
+2. Restart pi or run `/reload` to load the extension.
 
 ## Configuration
 
@@ -88,4 +82,4 @@ Agent: [uses ha_announce with target media_player.living_room] Done!
 
 ## Dependencies
 
-- `undici` - HTTP client with custom TLS agent support
+None — uses only Node.js built-in modules.
