@@ -1,0 +1,10 @@
+{
+  "name": "pi-pushover",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Pushover notification extension for pi",
+  "dependencies": {},
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}

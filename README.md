@@ -6,6 +6,7 @@ My personal collection of custom extensions for [pi](https://github.com/badlogic
 
 - **[pi-clipboard](./pi-clipboard/README.md)** - Lets your agent copy text to the clipboard.
 - **[pi-homeassistant](./pi-homeassistant/README.md)** - Lets your agent control Home Assistant and make voice announcements.
+- **[pi-pushover](./pi-pushover/README.md)** - Lets your agent send Pushover notifications.
 
 ## Prerequisites
 
