@@ -17,7 +17,7 @@ const getAppKey = (): string | undefined => process.env.PUSHOVER_PI_KEY;
  */
 async function sendPushoverNotification(
 	message: string,
-	options?: { title?: string; priority?: number; sound?: string },
+	options?: { title?: string; priority?: number; sound?: string; retry?: number; expire?: number },
 	signal?: AbortSignal
 ): Promise<{ success: boolean; error?: string }> {
 	const userKey = getUserKey();
@@ -28,6 +28,22 @@ async function sendPushoverNotification(
 			success: false,
 			error: "Pushover not configured. Set PUSHOVER_USER_KEY and PUSHOVER_PI_KEY environment variables.",
 		};
+	}
+
+	// Validate emergency priority requirements
+	if (options?.priority === 2) {
+		if (!options.retry || !options.expire) {
+			return {
+				success: false,
+				error: "Emergency priority (2) requires 'retry' and 'expire' parameters.",
+			};
+		}
+		if (options.retry < 30) {
+			return { success: false, error: "Emergency priority 'retry' must be at least 30 seconds." };
+		}
+		if (options.expire > 10800) {
+			return { success: false, error: "Emergency priority 'expire' must be at most 10800 seconds (3 hours)." };
+		}
 	}
 
 	try {
@@ -43,6 +59,8 @@ async function sendPushoverNotification(
 				title: options?.title,
 				priority: options?.priority,
 				sound: options?.sound,
+				retry: options?.retry,
+				expire: options?.expire,
 			}),
 			signal,
 		});
@@ -98,20 +116,20 @@ async function handlePushover(args: string, ctx: ExtensionCommandContext): Promi
  */
 async function handleNotify(
 	_toolCallId: string,
-	params: { message: string; title?: string; priority?: number; sound?: string },
+	params: { message: string; title?: string; priority?: number; sound?: string; retry?: number; expire?: number },
 	signal: AbortSignal | undefined,
 	_onUpdate: ((update: { content: { type: string; text: string }[] }) => void) | undefined,
 	ctx: ExtensionCommandContext
 ): Promise<{ content: { type: string; text: string }[]; details?: unknown; isError?: boolean }> {
-	const { message, title, priority, sound } = params;
+	const { message, title, priority, sound, retry, expire } = params;
 
-	const result = await sendPushoverNotification(message, { title, priority, sound }, signal);
+	const result = await sendPushoverNotification(message, { title, priority, sound, retry, expire }, signal);
 
 	if (result.success) {
 		ctx.ui.notify("Pushover notification sent", "success");
 		return {
 			content: [{ type: "text", text: `Pushover notification sent successfully.` }],
-			details: { message, title, priority, sound },
+			details: { message, title, priority, sound, retry, expire },
 		};
 	} else {
 		ctx.ui.notify(`Pushover failed: ${result.error}`, "error");
@@ -149,9 +167,11 @@ export default function (pi: ExtensionAPI) {
 			message: Type.String({ description: "The message to send" }),
 			title: Type.Optional(Type.String({ description: "Optional title for the notification" })),
 			priority: Type.Optional(
-				Type.Number({
+				Type.Integer({
+					minimum: -2,
+					maximum: 2,
 					description:
-						"Optional priority (-2 to 2). -2: no notification, -1: quiet, 0: normal (default), 1: high priority, 2: emergency (requires ack)",
+						"Priority level: -2 (no alert), -1 (quiet), 0 (normal, default), 1 (high, bypasses quiet hours), 2 (emergency, requires retry and expire)",
 				})
 			),
 			sound: Type.Optional(
@@ -159,11 +179,24 @@ export default function (pi: ExtensionAPI) {
 					description: "Optional sound name (e.g., 'pushover', 'bike', 'bugle', 'cashregister', 'classical', etc.)",
 				})
 			),
+			retry: Type.Optional(
+				Type.Integer({
+					minimum: 30,
+					description: "For emergency priority (2): seconds between retries (minimum 30)",
+				})
+			),
+			expire: Type.Optional(
+				Type.Integer({
+					minimum: 30,
+					maximum: 10800,
+					description: "For emergency priority (2): seconds before stopping retries (max 10800 = 3 hours)",
+				})
+			),
 		}),
 		async execute(toolCallId, params, signal, onUpdate, ctx) {
 			return handleNotify(
 				toolCallId,
-				params as { message: string; title?: string; priority?: number; sound?: string },
+				params as { message: string; title?: string; priority?: number; sound?: string; retry?: number; expire?: number },
 				signal,
 				onUpdate,
 				ctx as ExtensionCommandContext

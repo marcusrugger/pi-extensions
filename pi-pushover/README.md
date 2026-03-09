@@ -36,12 +36,16 @@ The extension provides a `pushover_notify` tool that agents can use to send noti
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description                                                                 |
-|------------|--------|----------|-----------------------------------------------------------------------------|
-| message    | string | Yes      | The message to send                                                         |
-| title      | string | No       | Optional title for the notification                                         |
-| priority   | number | No       | Priority (-2 to 2): -2 no alert, -1 quiet, 0 normal, 1 high, 2 emergency   |
-| sound      | string | No       | Sound name (pushover, bike, bugle, cashregister, classical, etc.)          |
+| Parameter  | Type    | Required | Description                                                                                      |
+|------------|---------|----------|--------------------------------------------------------------------------------------------------|
+| message    | string  | Yes      | The message to send (max 1024 characters)                                                        |
+| title      | string  | No       | Optional title for the notification (max 250 characters)                                         |
+| priority   | integer | No       | Priority: -2 (no alert), -1 (quiet), 0 (normal), 1 (high), 2 (emergency, requires retry/expire) |
+| sound      | string  | No       | Sound name (pushover, bike, bugle, cashregister, classical, etc.)                               |
+| retry      | integer | No*      | For emergency priority: seconds between retries (minimum 30)                                     |
+| expire     | integer | No*      | For emergency priority: seconds before stopping retries (max 10800 = 3 hours)                   |
+
+*Required when priority is 2 (emergency).
 
 ## Installation
 
