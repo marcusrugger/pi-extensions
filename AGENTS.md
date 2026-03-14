@@ -42,6 +42,7 @@ Each extension is a standalone npm package in its own directory with:
 ## Current Extensions
 
 See each extensions README.md for more information about the extension.
+- pi-brave-search - provides agent with web and news search capabilities via Brave Search API
 - pi-clipboard - provides agent with a clipboard tool
 - pi-homeassistant - provides user and agent with tools for Home Assistant
 - pi-pushover - provides user and agent with tools to push PushOver notifications
@@ -51,5 +52,8 @@ See each extensions README.md for more information about the extension.
 - Extensions are written in TypeScript and loaded directly by pi (no build step required)
 - Pi handles TypeScript compilation internally
 - Use `ctx.ui.notify()` for user feedback in tools
+- Return `{ content: [{ type: "text", text: "..." }] }` from tool execution
+- Set `isError: true` in the return object for error conditions
+s
 - Return `{ content: [{ type: "text", text: "..." }] }` from tool execution
 - Set `isError: true` in the return object for error conditions
