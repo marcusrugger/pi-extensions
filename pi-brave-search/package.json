@@ -1,0 +1,10 @@
+{
+  "name": "pi-brave-search",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Brave Search extension for pi - web and news search capabilities",
+  "dependencies": {},
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
