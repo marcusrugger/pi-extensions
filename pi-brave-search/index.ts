@@ -236,6 +236,23 @@ async function executeSearch(
 		}
 
 		const data = await response.json();
+
+		// Validate response shape
+		if (type === "web" && data.web !== undefined && !Array.isArray(data.web?.results)) {
+			notify?.("Search failed", "error");
+			return {
+				content: [{ type: "text", text: "Unexpected response format from Brave API: web.results is not an array" }],
+				isError: true,
+			};
+		}
+		if (type === "news" && data.results !== undefined && !Array.isArray(data.results)) {
+			notify?.("Search failed", "error");
+			return {
+				content: [{ type: "text", text: "Unexpected response format from Brave API: results is not an array" }],
+				isError: true,
+			};
+		}
+
 		const formattedResult = type === "web"
 			? formatWebResults(params.query, data, params.count || 10)
 			: formatNewsResults(params.query, data);

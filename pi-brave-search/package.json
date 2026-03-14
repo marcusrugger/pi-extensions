@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Brave Search extension for pi - web and news search capabilities",
-  "dependencies": {},
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.0"
+  },
   "pi": {
     "extensions": ["./index.ts"]
   }
